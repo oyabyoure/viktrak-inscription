@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VikTrak — Inscription Agents Terrain</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0f1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d45;
+    --accent: #f59e0b;
+    --accent2: #10b981;
+    --danger: #ef4444;
+    --text: #f1f5f9;
+    --muted: #64748b;
+    --green: #10b981;
+    --red: #ef4444;
+    --orange: #f59e0b;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(245,158,11,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 100%, rgba(16,185,129,0.05) 0%, transparent 60%);
+  }
+
+  /* HEADER */
+  header {
+    padding: 24px 24px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .logo-text {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+  .logo-text span { color: var(--accent); }
+  .admin-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+  .admin-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* MAIN */
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 32px 24px 60px;
+  }
+
+  /* HERO */
+  .hero {
+    margin-bottom: 40px;
+  }
+  .hero h1 {
+    font-size: clamp(28px, 6vw, 44px);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 12px;
+    letter-spacing: -1px;
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+  .hero p {
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.6;
+    max-width: 520px;
+  }
+  .rules {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .rule-pill {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-family: 'Space Mono', monospace;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .rule-pill .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  /* FORM */
+  .form-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 32px;
+  }
+  .form-card h2 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+  @media(max-width: 540px) { .form-grid { grid-template-columns: 1fr; } }
+  .field label {
+    display: block;
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    color: var(--muted);
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .field input, .field select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 14px;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    appearance: none;
+  }
+  .field input:focus, .field select:focus {
+    border-color: var(--accent);
+  }
+  .field input::placeholder { color: var(--muted); }
+
+  .submit-btn {
+    width: 100%;
+    background: var(--accent);
+    color: #0a0f1a;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .submit-btn:hover { background: #fbbf24; transform: translateY(-1px); }
+  .submit-btn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; transform: none; }
+
+  /* FILTERS */
+  .filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 7px 16px;
+    border-radius: 99px;
+    font-size: 13px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-btn.active, .filter-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(245,158,11,0.08);
+  }
+
+  /* LINES GRID */
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .section-header h2 {
+    font-size: 20px;
+    font-weight: 800;
+  }
+  .count-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .lines-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+  }
+
+  .line-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    transition: all 0.2s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .line-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--accent-line, var(--border));
+    transition: width 0.2s;
+  }
+  .line-card.available:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+  .line-card.available:hover::before { width: 5px; }
+  .line-card.taken {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .line-card.taken::before { background: var(--red); }
+
+  .line-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .line-num {
+    background: rgba(245,158,11,0.12);
+    color: var(--accent);
+    border-radius: 6px;
+    padding: 3px 9px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .line-num.intercommunal {
+    background: rgba(16,185,129,0.12);
+    color: var(--green);
+  }
+  .line-num.etudiant {
+    background: rgba(139,92,246,0.12);
+    color: #a78bfa;
+  }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-top: 4px;
+    flex-shrink: 0;
+  }
+  .status-dot.available { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .status-dot.taken { background: var(--red); }
+
+  .line-name {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  .line-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .line-ville {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+  }
+  .line-remun {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+  }
+  .line-agent {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    width: 100%;
+    max-width: 460px;
+    animation: slideUp 0.25s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .modal h3 {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+  .modal .modal-sub {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+  .modal-field {
+    margin-bottom: 14px;
+  }
+  .modal-field label {
+    display: block;
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    color: var(--muted);
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .modal-field input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .modal-field input:focus { border-color: var(--accent); }
+  .modal-field input::placeholder { color: var(--muted); }
+  .modal-warning {
+    background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.2);
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 12px;
+    color: var(--orange);
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+  .modal-btns {
+    display: flex;
+    gap: 10px;
+  }
+  .btn-cancel {
+    flex: 1;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 10px;
+    padding: 12px;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-cancel:hover { border-color: var(--muted); }
+  .btn-confirm {
+    flex: 2;
+    background: var(--accent);
+    color: #0a0f1a;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-confirm:hover { background: #fbbf24; }
+
+  /* ADMIN */
+  .admin-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 200;
+    overflow-y: auto;
+    padding: 32px 24px;
+  }
+  .admin-overlay.open { display: block; }
+  .admin-header {
+    max-width: 900px;
+    margin: 0 auto 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .admin-header h2 {
+    font-size: 24px;
+    font-weight: 800;
+  }
+  .admin-header h2 span { color: var(--accent); }
+  .close-admin {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .close-admin:hover { border-color: var(--danger); color: var(--danger); }
+
+  .admin-stats {
+    max-width: 900px;
+    margin: 0 auto 28px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+  }
+  .stat-card .stat-val {
+    font-size: 28px;
+    font-weight: 800;
+    font-family: 'Space Mono', monospace;
+    color: var(--accent);
+  }
+  .stat-card .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .admin-table-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead th {
+    text-align: left;
+    padding: 10px 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  tbody tr:hover { background: var(--surface2); }
+  tbody td {
+    padding: 12px 14px;
+    vertical-align: middle;
+  }
+  .td-line { font-weight: 700; }
+  .td-agent { font-family: 'Space Mono', monospace; font-size: 11px; }
+  .td-moov { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--accent); }
+  .td-ville { font-size: 11px; color: var(--muted); }
+  .type-badge {
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-size: 10px;
+    font-family: 'Space Mono', monospace;
+  }
+  .type-ordinaire { background: rgba(245,158,11,0.1); color: var(--accent); }
+  .type-intercommunale { background: rgba(16,185,129,0.1); color: var(--green); }
+  .type-étudiant { background: rgba(139,92,246,0.1); color: #a78bfa; }
+
+  .export-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 20px;
+    display: inline-block;
+  }
+  .export-btn:hover { border-color: var(--green); color: var(--green); }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 22px;
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 999;
+    transition: transform 0.3s ease;
+    white-space: nowrap;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { border-color: var(--green); color: var(--green); }
+  .toast.error { border-color: var(--red); color: var(--red); }
+
+  /* ADMIN LOGIN */
+  .admin-login {
+    max-width: 360px;
+    margin: 80px auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px;
+  }
+  .admin-login h2 {
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+  .admin-login p {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+  .no-results {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">📍</div>
+    <div class="logo-text">Vik<span>Trak</span></div>
+  </div>
+  <button class="admin-btn" onclick="openAdmin()">⚙ Admin</button>
+</header>
+
+<main>
+  <div class="hero">
+    <h1>Rejoins la mission<br><em>terrain SOTRACO</em></h1>
+    <p>Prends le bus, enregistre les arrêts GPS avec ton téléphone via <strong>VikTrak Terrain</strong>, et sois payé immédiatement après validation via Orange Money ou Moov.</p>
+    <div class="rules">
+      <div class="rule-pill"><div class="dot"></div> 1 000 XOF / sens</div>
+      <div class="rule-pill"><div class="dot"></div> Ticket remboursé</div>
+      <div class="rule-pill"><div class="dot"></div> L2B : bonus 500 XOF</div>
+      <div class="rule-pill"><div class="dot"></div> Max 2 lignes / agent</div>
+      <div class="rule-pill"><div class="dot"></div> Premier arrivé, premier servi</div>
+    </div>
+  </div>
+
+  <div class="filters" id="filters">
+    <button class="filter-btn active" onclick="filterLines('all', this)">Toutes</button>
+    <button class="filter-btn" onclick="filterLines('Ouagadougou', this)">Ouagadougou</button>
+    <button class="filter-btn" onclick="filterLines('Bobo-Dioulasso', this)">Bobo</button>
+    <button class="filter-btn" onclick="filterLines('Koudougou', this)">Koudougou</button>
+    <button class="filter-btn" onclick="filterLines('Ouahigouya', this)">Ouahigouya</button>
+    <button class="filter-btn" onclick="filterLines('Dédougou', this)">Dédougou</button>
+    <button class="filter-btn" onclick="filterLines('Fada N\'Gourma', this)">Fada</button>
+    <button class="filter-btn" onclick="filterLines('Koupéla', this)">Koupéla</button>
+    <button class="filter-btn" onclick="filterLines('Gaoua', this)">Gaoua</button>
+    <button class="filter-btn" onclick="filterLines('Manga', this)">Manga</button>
+    <button class="filter-btn" onclick="filterLines('disponible', this)">🟢 Disponibles</button>
+  </div>
+
+  <div class="section-header">
+    <h2 id="section-title">Toutes les lignes</h2>
+    <span class="count-badge" id="count-badge"></span>
+  </div>
+
+  <div class="lines-grid" id="lines-grid"></div>
+</main>
+
+<!-- MODAL INSCRIPTION -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3 id="modal-title">Réserver cette ligne</h3>
+    <p class="modal-sub" id="modal-sub"></p>
+    <div class="modal-warning">
+      ⚡ Cette ligne sera verrouillée pour toi dès confirmation. Assure-toi d'être disponible pour la collecter rapidement.<br><br>
+      📍 <strong>Obligation :</strong> commence la collecte <strong>au terminus de départ</strong> — pas en milieu de ligne.<br>
+      <span id="modal-unisens-note"></span>
+    </div>
+    <div class="modal-field">
+      <label>Prénom et nom</label>
+      <input type="text" id="inp-nom" placeholder="Ex: Amadou Ouédraogo">
+    </div>
+    <div class="modal-field">
+      <label>Numéro Orange Money ou Moov</label>
+      <input type="tel" id="inp-moov" placeholder="Ex: 70 00 00 00">
+    </div>
+    <div class="modal-field">
+      <label>Ville de résidence</label>
+      <input type="text" id="inp-ville-agent" placeholder="Ex: Ouagadougou">
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Annuler</button>
+      <button class="btn-confirm" onclick="confirmReservation()">✓ Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class="admin-overlay" id="admin-panel">
+  <div id="admin-login-view">
+    <div class="admin-login">
+      <h2>🔐 Accès Admin</h2>
+      <p>Entrez le mot de passe pour accéder au tableau de bord.</p>
+      <div class="modal-field">
+        <label>Mot de passe</label>
+        <input type="password" id="admin-pwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkAdmin()">
+      </div>
+      <button class="btn-confirm" style="width:100%;margin-top:8px" onclick="checkAdmin()">Accéder →</button>
+      <br><br>
+      <button class="btn-cancel" style="width:100%" onclick="closeAdminPanel()">Annuler</button>
+    </div>
+  </div>
+
+  <div id="admin-dashboard" style="display:none">
+    <div class="admin-header">
+      <h2>Dashboard <span>Admin</span></h2>
+      <div style="display:flex;gap:10px">
+        <button class="export-btn" onclick="exportCSV()">⬇ Exporter CSV</button>
+        <button class="close-admin" onclick="closeAdminPanel()">✕ Fermer</button>
+      </div>
+    </div>
+    <div class="admin-stats" id="admin-stats"></div>
+    <div class="admin-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Ligne</th>
+            <th>Ville</th>
+            <th>Type</th>
+            <th>Agent</th>
+            <th>N° Mobile Money</th>
+            <th>Ville agent</th>
+            <th>Rémunération</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="admin-tbody"></tbody>
+      </table>
+      <div id="admin-empty" class="no-results" style="display:none">Aucune inscription pour le moment.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════
+// DONNÉES — toutes les lignes SOTRACO
+// ══════════════════════════════════════
+const LINES = [
+  // ══════════════════════════════════════════════════════════════════
+  // RÉMUNÉRATION (arrondie) :
+  // Ouaga L2B        : 1000×2 + 500×2 tickets + 500 bonus = 3 000 XOF
+  // Ouaga ordinaire  : 1000×2 + 200×2 tickets             = 2 500 XOF (arrondi)
+  // Autres villes ordinaire : 1000×2 + 150×2              = 2 500 XOF (arrondi)
+  // Spéciales étudiantes    : 1 seul sens = 1000 + ticket = 1 500 XOF max
+  // Intercommunales         : 1000×2 + ticket réel A/R    = variable
+  // Nouvelles villes (Fada, Koupéla, Gaoua, Manga) : même grille
+  // ══════════════════════════════════════════════════════════════════
+
+  // ── OUAGADOUGOU — ordinaires ──────────────────────────────────
+  // Noms exacts issus du fichier citymoov_lignes_complet_2026.numbers
+  {id:"OUA-L1",          ville:"Ouagadougou", num:"L1",          type:"ordinaire",     nom:"Ligne 1 — Karpala ⇄ Terminus Naaba Koom",                              remun:2500},
+  {id:"OUA-L2",          ville:"Ouagadougou", num:"L2",          type:"ordinaire",     nom:"Ligne 2 — Yamtenga ⇄ Terminus Naaba Koom",                             remun:2500},
+  {id:"OUA-L2B",         ville:"Ouagadougou", num:"L2B",         type:"ordinaire",     nom:"Ligne 2B — Balkuy ⇄ Terminus Naaba Koom ⭐ Bonus",                     remun:3000, bonus:true},
+  {id:"OUA-L3",          ville:"Ouagadougou", num:"L3",          type:"ordinaire",     nom:"Ligne 3 — Bissighin ⇄ Zone des Écoles",                                remun:2500},
+  {id:"OUA-L4",          ville:"Ouagadougou", num:"L4",          type:"ordinaire",     nom:"Ligne 4 — Sandogo ⇄ Zone des Écoles",                                  remun:2500},
+  {id:"OUA-L5",          ville:"Ouagadougou", num:"L5",          type:"ordinaire",     nom:"Ligne 5 — Sigui Yaar de Bargo ⇄ Naaba Koom",                           remun:2500},
+  {id:"OUA-L5B",         ville:"Ouagadougou", num:"L5B",         type:"ordinaire",     nom:"Ligne 5B — One School (Saaba) ⇄ Naaba Koom",                           remun:2500},
+  {id:"OUA-L6",          ville:"Ouagadougou", num:"L6",          type:"ordinaire",     nom:"Ligne 6 — Koulweoguin ⇄ Naaba Koom",                                   remun:2500},
+  {id:"OUA-L6B",         ville:"Ouagadougou", num:"L6B",         type:"ordinaire",     nom:"Ligne 6B — Route de Kaya ⇄ Naaba Koom",                                remun:2500},
+  {id:"OUA-L9",          ville:"Ouagadougou", num:"L9",          type:"ordinaire",     nom:"Ligne 9 — Saaba ⇄ Naaba Koom",                                         remun:2500},
+  {id:"OUA-L10",         ville:"Ouagadougou", num:"L10",         type:"ordinaire",     nom:"Ligne 10 — CHU Tengandogo ⇄ Zone des Écoles",                          remun:2500},
+  {id:"OUA-L11",         ville:"Ouagadougou", num:"L11",         type:"ordinaire",     nom:"Ligne 11 — Rimkiéta ⇄ Naaba Koom",                                     remun:2500},
+  {id:"OUA-L12",         ville:"Ouagadougou", num:"L12",         type:"ordinaire",     nom:"Ligne 12 — Bonheur Ville ⇄ Zone des Écoles",                           remun:2500},
+  {id:"OUA-L13",         ville:"Ouagadougou", num:"L13",         type:"ordinaire",     nom:"Ligne 13 — Kamboinsin ⇄ Zone des Écoles",                              remun:2500},
+  {id:"OUA-L15",         ville:"Ouagadougou", num:"L15",         type:"ordinaire",     nom:"Ligne 15 — Naaba Koom ⇄ Belle Ville (Watinoma)",                       remun:2500},
+  {id:"OUA-L16",         ville:"Ouagadougou", num:"L16",         type:"ordinaire",     nom:"Ligne 16 — Bassinko ⇄ Naaba Koom",                                     remun:2500},
+  {id:"OUA-L17",         ville:"Ouagadougou", num:"L17",         type:"ordinaire",     nom:"Ligne 17 — Boassa ⇄ Zone des Écoles",                                  remun:2500},
+  // ── OUAGADOUGOU — intercommunales ────────────────────────────
+  {id:"OUA-IC-Koubri",   ville:"Ouagadougou", num:"IC-Koubri",   type:"intercommunale",nom:"Intercommunale — Ouagadougou ⇄ Koubri",                               remun:2800},
+  {id:"OUA-IC-Ziniare",  ville:"Ouagadougou", num:"IC-Ziniaré",  type:"intercommunale",nom:"Intercommunale — Ouagadougou ⇄ Ziniaré",                              remun:3400},
+  {id:"OUA-IC-Pabre",    ville:"Ouagadougou", num:"IC-Pabré",    type:"intercommunale",nom:"Intercommunale — Ouagadougou ⇄ Pabré",                                remun:3000},
+  // ── OUAGADOUGOU — spéciales étudiantes (1 seul sens = 1 500 XOF) ──
+  {id:"OUA-UO1-Kossodo", ville:"Ouagadougou", num:"UO1-Kossodo", type:"étudiant",      nom:"Spéciale UO1 — Cité universitaire de Kossodo ⇄ SIAO",                 remun:1500, unisens:true},
+  {id:"OUA-UO1-PatteOie",ville:"Ouagadougou", num:"UO1-PatteOie",type:"étudiant",      nom:"Spéciale UO1 — Patte d'Oie ⇄ UO1 via SIAO",                          remun:1500, unisens:true},
+  {id:"OUA-UO1-Larlé",   ville:"Ouagadougou", num:"UO1-Larlé",   type:"étudiant",      nom:"Spéciale UO1 — Larlé ⇄ UO1",                                         remun:1500, unisens:true},
+  {id:"OUA-UTS-Axe1",    ville:"Ouagadougou", num:"UTS-Axe1",    type:"étudiant",      nom:"Spéciale UTS Axe 1",                                                  remun:1500, unisens:true},
+  {id:"OUA-UTS-Axe2",    ville:"Ouagadougou", num:"UTS-Axe2",    type:"étudiant",      nom:"Spéciale UTS Axe 2",                                                  remun:1500, unisens:true},
+  {id:"OUA-UTS-Axe3",    ville:"Ouagadougou", num:"UTS-Axe3",    type:"étudiant",      nom:"Spéciale UTS Axe 3",                                                  remun:1500, unisens:true},
+  // ── BOBO-DIOULASSO — ordinaires ──────────────────────────────
+  {id:"BOB-L1",          ville:"Bobo-Dioulasso", num:"L1",        type:"ordinaire",     nom:"Ligne 1 — CROUB ⇄ Place Tiéfo Amoro",                                remun:2500},
+  {id:"BOB-L1B",         ville:"Bobo-Dioulasso", num:"L1B",       type:"ordinaire",     nom:"Ligne 1B — Cité verte de Belleville ⇄ Place Tiéfo Amoro",             remun:2500},
+  {id:"BOB-L2",          ville:"Bobo-Dioulasso", num:"L2",        type:"ordinaire",     nom:"Ligne 2 — Station Oryx route de Ouaga ⇄ Place Tiéfo Amoro",           remun:2500},
+  {id:"BOB-L2B",         ville:"Bobo-Dioulasso", num:"L2B",       type:"ordinaire",     nom:"Ligne 2B — Marché de Yegueresso ⇄ Place Tiéfo Amoro",                remun:2500},
+  {id:"BOB-L3",          ville:"Bobo-Dioulasso", num:"L3",        type:"ordinaire",     nom:"Ligne 3 — Petro Sar route de Bama ⇄ Place Tiéfo Amoro",               remun:2500},
+  {id:"BOB-L4",          ville:"Bobo-Dioulasso", num:"L4",        type:"ordinaire",     nom:"Ligne 4 — Station Oryx route de Ouagadougou ⇄ Place Tiéfo Amoro",    remun:2500},
+  {id:"BOB-L5",          ville:"Bobo-Dioulasso", num:"L5",        type:"ordinaire",     nom:"Ligne 5 — Farako Ba ⇄ Place Tiéfo Amoro",                            remun:2500},
+  {id:"BOB-L6",          ville:"Bobo-Dioulasso", num:"L6",        type:"ordinaire",     nom:"Ligne 6 — Logements sociaux Ouezzinville ⇄ Place Tiéfo Amoro",        remun:2500},
+  {id:"BOB-L7",          ville:"Bobo-Dioulasso", num:"L7",        type:"ordinaire",     nom:"Ligne 7 — CSPS de Santidougou ⇄ Place Tiéfo Amoro",                  remun:2500},
+  {id:"BOB-L8",          ville:"Bobo-Dioulasso", num:"L8",        type:"ordinaire",     nom:"Ligne 8 — Djoulankolo-Logo ⇄ Place Tiéfo Amoro",                     remun:2500},
+  {id:"BOB-L9",          ville:"Bobo-Dioulasso", num:"L9",        type:"ordinaire",     nom:"Ligne 9 — Marché du 22 ⇄ Zone des Écoles",                           remun:2500},
+  {id:"BOB-L10",         ville:"Bobo-Dioulasso", num:"L10",       type:"ordinaire",     nom:"Ligne 10 — Terminus Tiéfo Amoro ⇄ IRA",                              remun:2500},
+  {id:"BOB-L13",         ville:"Bobo-Dioulasso", num:"L13",       type:"ordinaire",     nom:"Ligne 13 — UCAO ⇄ Terminal INSSA",                                   remun:2500},
+  // ── BOBO-DIOULASSO — intercommunale ──────────────────────────
+  {id:"BOB-IC-Bama",     ville:"Bobo-Dioulasso", num:"IC-Bama",   type:"intercommunale",nom:"Intercommunale — Place Tiéfo Amoro ⇄ Mairie de Bama",                  remun:3000},
+  // ── BOBO-DIOULASSO — spéciales étudiantes (1 seul sens = 1 500 XOF) ──
+  {id:"BOB-LSE-Total",   ville:"Bobo-Dioulasso", num:"LSE-NaziBoni-Total",  type:"étudiant",nom:"Spéc. Station Total rte Ouaga → Univ. Nazi Boni",               remun:1500, unisens:true},
+  {id:"BOB-LSE-Medersa", ville:"Bobo-Dioulasso", num:"LSE-Medersa",         type:"étudiant",nom:"Spéc. Medersa Salam → Univ. Nazi Boni",                         remun:1500, unisens:true},
+  {id:"BOB-LSE-Sarfalao",ville:"Bobo-Dioulasso", num:"LSE-Sarfalao",        type:"étudiant",nom:"Spéc. Station Shell Sarfalao → Univ. Nazi Boni",                 remun:1500, unisens:true},
+  // ── KOUDOUGOU — ordinaires ────────────────────────────────────
+  {id:"KOU-L1",          ville:"Koudougou", num:"L1",    type:"ordinaire",     nom:"Ligne 1 — Cité des Forces Vives ⇄ Université Norbert Zongo",                  remun:2500},
+  {id:"KOU-L1B",         ville:"Koudougou", num:"L1B",   type:"ordinaire",     nom:"Ligne 1 bis — Cité des Forces Vives ⇄ Terminus central",                     remun:2500},
+  {id:"KOU-L3",          ville:"Koudougou", num:"L3",    type:"ordinaire",     nom:"Ligne 3 — Terminus Goundi (route de Dédougou) ⇄ Terminus Gare routière",     remun:2500},
+  {id:"KOU-L5",          ville:"Koudougou", num:"L5",    type:"ordinaire",     nom:"Ligne 5 — Terminus RTB (route de Réo) ⇄ Terminus site de concassage",        remun:2500},
+  {id:"KOU-L6",          ville:"Koudougou", num:"L6",    type:"ordinaire",     nom:"Ligne 6 — Terminus Lycée WendSongda (route de Yako) ⇄ Terminus central",     remun:2500},
+  {id:"KOU-L7",          ville:"Koudougou", num:"L7",    type:"ordinaire",     nom:"Ligne 7 — Terminus site de concassage de granite ⇄ Terminus central",        remun:2500},
+  // ── KOUDOUGOU — intercommunales ──────────────────────────────
+  {id:"KOU-IC-Reo",      ville:"Koudougou", num:"IC-Réo",    type:"intercommunale",nom:"Intercommunale — Koudougou ⇄ Réo",                                       remun:2500},
+  {id:"KOU-IC-POA",      ville:"Koudougou", num:"IC-POA",    type:"intercommunale",nom:"Intercommunale — Koudougou ⇄ POA",                                       remun:3000},
+  {id:"KOU-IC-Sabou",    ville:"Koudougou", num:"IC-Sabou",  type:"intercommunale",nom:"Intercommunale — Koudougou ⇄ Sabou",                                     remun:3000},
+  {id:"KOU-IC-Tenado",   ville:"Koudougou", num:"IC-Ténado", type:"intercommunale",nom:"Intercommunale — Koudougou ⇄ Ténado",                                    remun:3000},
+  // ── OUAHIGOUYA ────────────────────────────────────────────────
+  {id:"OUA2-LO1",        ville:"Ouahigouya", num:"LO1",  type:"ordinaire", nom:"Ligne LO1 — Wend Pouiré ⇄ Collège privé Vénégré",                               remun:2500},
+  {id:"OUA2-LSE1",       ville:"Ouahigouya", num:"LSE1", type:"étudiant",  nom:"Ligne LSE1 (Étudiante)",                                                         remun:1500, unisens:true},
+  {id:"OUA2-LSE2",       ville:"Ouahigouya", num:"LSE2", type:"étudiant",  nom:"Ligne LSE2 (Étudiante)",                                                         remun:1500, unisens:true},
+  // ── DÉDOUGOU ──────────────────────────────────────────────────
+  {id:"DED-LSE1",        ville:"Dédougou", num:"LSE1", type:"étudiant", nom:"Ligne Spéciale LSE n°1 — Université Dédougou ⇄ Rondpoint Nazi Boni",               remun:1500, unisens:true},
+  {id:"DED-LSE2",        ville:"Dédougou", num:"LSE2", type:"étudiant", nom:"Ligne Spéciale Étudiant LSE2",                                                      remun:1500, unisens:true},
+  // ── FADA N'GOURMA 🆕 ──────────────────────────────────────────
+  {id:"FAD-L1",          ville:"Fada N'Gourma", num:"L1", type:"ordinaire",     nom:"Ligne 1 — Péage route de Ouagadougou ⇄ Camp militaire 🆕",                 remun:2500, new:true},
+  {id:"FAD-L2",          ville:"Fada N'Gourma", num:"L2", type:"ordinaire",     nom:"Ligne 2 — Terminus Université Yembila Abdoulaye TOGUYENI ⇄ Terminus quartier Kalimama 🆕", remun:2500, new:true},
+  {id:"FAD-L3",          ville:"Fada N'Gourma", num:"L3", type:"ordinaire",     nom:"Ligne 3 — Terminus quartier Barnatanou ⇄ Terminus Lycée Djadjari 🆕",      remun:2500, new:true},
+  {id:"FAD-L4",          ville:"Fada N'Gourma", num:"L4", type:"ordinaire",     nom:"Ligne 4 — Terminus Centre médical Béthanie ⇄ Terminus Lycée provincial 🆕",remun:2500, new:true},
+  {id:"FAD-L5",          ville:"Fada N'Gourma", num:"L5", type:"ordinaire",     nom:"Ligne 5 — Terminus Conseil supérieur de la Communication ⇄ Terminus marché du secteur 02 🆕", remun:2500, new:true},
+  {id:"FAD-IC-Diapangou",ville:"Fada N'Gourma", num:"IC-Diapangou", type:"intercommunale",nom:"Intercommunale — Fada N'Gourma ⇄ Diapangou 🆕",                  remun:2500, new:true},
+  // ── KOUPÉLA 🆕 ────────────────────────────────────────────────
+  {id:"KPL-IC-Tenkodogo",ville:"Koupéla", num:"IC-Tenkodogo",  type:"intercommunale",nom:"Intercommunale — Koupéla ⇄ Tenkodogo 🆕",                             remun:2500, new:true},
+  {id:"KPL-IC-Gounghin", ville:"Koupéla", num:"IC-Gounghin",   type:"intercommunale",nom:"Intercommunale — Koupéla ⇄ Gounghin 🆕",                              remun:2500, new:true},
+  {id:"KPL-IC-Zorgho",   ville:"Koupéla", num:"IC-Zorgho",     type:"intercommunale",nom:"Intercommunale — Koupéla ⇄ Sapaga ⇄ Zorgho 🆕",                       remun:2500, new:true},
+  {id:"KPL-IC-Pouytenga",ville:"Koupéla", num:"IC-Pouytenga",  type:"intercommunale",nom:"Intercommunale — Koupéla ⇄ Sapaga ⇄ Pouytenga 🆕",                   remun:2500, new:true},
+  // ── GAOUA 🆕 ──────────────────────────────────────────────────
+  {id:"GAO-L1",          ville:"Gaoua", num:"L1",  type:"ordinaire",     nom:"Ligne 1 — Carrefour Nako ⇄ Lycée Frère Bernard 🆕",                               remun:2500, new:true},
+  {id:"GAO-L2",          ville:"Gaoua", num:"L2",  type:"ordinaire",     nom:"Ligne 2 — Lycée professionnel régional ⇄ CEG de Nioboni 🆕",                      remun:2500, new:true},
+  {id:"GAO-L3",          ville:"Gaoua", num:"L3",  type:"ordinaire",     nom:"Ligne 3 — Carrefour Bakonon ⇄ Lycée municipal de Gaoua 🆕",                       remun:2500, new:true},
+  {id:"GAO-IC-Kampti",   ville:"Gaoua", num:"IC-Kampti",     type:"intercommunale",nom:"Intercommunale — Gaoua ⇄ Kampti 🆕",                                    remun:2500, new:true},
+  {id:"GAO-IC-Batie",    ville:"Gaoua", num:"IC-Batié",      type:"intercommunale",nom:"Intercommunale — Gaoua ⇄ Batié 🆕",                                     remun:2500, new:true},
+  {id:"GAO-IC-Tiankoura",ville:"Gaoua", num:"IC-Tiankoura",  type:"intercommunale",nom:"Intercommunale — Gaoua ⇄ Tiankoura 🆕",                                 remun:2500, new:true},
+  {id:"GAO-IC-Dano",     ville:"Gaoua", num:"IC-Dano",       type:"intercommunale",nom:"Intercommunale — Diébougou ⇄ Dano 🆕",                                  remun:2500, new:true},
+  {id:"GAO-IC-Bondigui", ville:"Gaoua", num:"IC-Bondigui",   type:"intercommunale",nom:"Intercommunale — Diébougou ⇄ Bondigui 🆕",                              remun:2500, new:true},
+  {id:"GAO-IC-Tian2",    ville:"Gaoua", num:"IC-Tiankoura2", type:"intercommunale",nom:"Intercommunale — Diébougou ⇄ Tiankoura 🆕",                             remun:2500, new:true},
+  // ── MANGA 🆕 ──────────────────────────────────────────────────
+  {id:"MAN-L1",          ville:"Manga", num:"L1",           type:"ordinaire",     nom:"Ligne 1 — Centre hospitalier régional (CHR) de Manga ⇄ CSPS du secteur n°5 🆕", remun:2500, new:true},
+  {id:"MAN-IC-Nioryida", ville:"Manga", num:"IC-Nioryida",  type:"intercommunale",nom:"Intercommunale — Manga ⇄ Guiba ⇄ Nioryida ⇄ Carrefour Bongbaré (RN5) 🆕",remun:2500, new:true},
+  {id:"MAN-IC-Gombousgou",ville:"Manga",num:"IC-Gombousgou",type:"intercommunale",nom:"Intercommunale — Manga ⇄ Gogo ⇄ Gombousgou 🆕",                         remun:2500, new:true},
+];
+
+const ADMIN_PASSWORD = "viktrak2025";
+
+// ══════════════════════════════════════
+// SUPABASE CONFIG
+// ══════════════════════════════════════
+const SB_URL    = "https://pqfdonatsfrgnmjebeuo.supabase.co";
+const SB_KEY    = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxZmRvbmF0c2ZyZ25tamViZXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMDkyMDYsImV4cCI6MjA5MjY4NTIwNn0.FCcogaruguB_JcHhYrTs7xDSghMY3FhmWeemXy96ECQ";
+const TABLE     = "agent_reservations";
+
+async function sbFetch(path, options = {}) {
+  const res = await fetch(`${SB_URL}/rest/v1/${path}`, {
+    ...options,
+    headers: {
+      "apikey": SB_KEY,
+      "Authorization": `Bearer ${SB_KEY}`,
+      "Content-Type": "application/json",
+      "Prefer": options.prefer || "return=representation",
+      ...(options.headers || {})
+    }
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Supabase error ${res.status}: ${err}`);
+  }
+  // 204 no content
+  if (res.status === 204) return [];
+  return res.json();
+}
+
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+let reservations = {};   // { line_id: row }
+let selectedLineId = null;
+let currentFilter = 'all';
+
+async function loadReservations() {
+  try {
+    const rows = await sbFetch(`${TABLE}?select=*`);
+    reservations = {};
+    rows.forEach(r => { reservations[r.line_id] = r; });
+  } catch(e) {
+    console.error('loadReservations:', e);
+    reservations = {};
+  }
+}
+
+async function saveReservation(line, nom, phone, villeAgent) {
+  return sbFetch(TABLE, {
+    method: "POST",
+    prefer: "return=representation",
+    body: JSON.stringify({
+      line_id:    line.id,
+      line_num:   line.num,
+      line_nom:   line.nom,
+      line_ville: line.ville,
+      line_type:  line.type,
+      remun:      line.remun,
+      agent_nom:   nom,
+      agent_phone: phone,
+      agent_ville: villeAgent
+    })
+  });
+}
+
+// ══════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════
+function getAgentLineCount(agentPhone) {
+  return Object.values(reservations).filter(r => r.agent_phone === agentPhone).length;
+}
+
+function renderLines() {
+  const grid = document.getElementById('lines-grid');
+  const title = document.getElementById('section-title');
+  const badge = document.getElementById('count-badge');
+
+  let filtered = LINES;
+  if (currentFilter === 'disponible') {
+    filtered = LINES.filter(l => !reservations[l.id]);
+  } else if (currentFilter !== 'all') {
+    filtered = LINES.filter(l => l.ville === currentFilter);
+  }
+
+  const available = filtered.filter(l => !reservations[l.id]).length;
+  badge.textContent = `${available} disponible${available > 1 ? 's' : ''} / ${filtered.length}`;
+
+  if (currentFilter === 'all') title.textContent = 'Toutes les lignes';
+  else if (currentFilter === 'disponible') title.textContent = 'Lignes disponibles';
+  else title.textContent = currentFilter;
+
+  grid.innerHTML = '';
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="no-results">Aucune ligne dans cette catégorie.</div>';
+    return;
+  }
+
+  filtered.forEach(line => {
+    const taken = !!reservations[line.id];
+    const agent = reservations[line.id];
+
+    const typeClass = line.type === 'intercommunale' ? 'intercommunal' : line.type === 'étudiant' ? 'etudiant' : '';
+    const accentColor = line.type === 'intercommunale' ? '#10b981' : line.type === 'étudiant' ? '#a78bfa' : line.bonus ? '#f97316' : '#f59e0b';
+
+    const card = document.createElement('div');
+    card.className = `line-card ${taken ? 'taken' : 'available'}`;
+    card.style.setProperty('--accent-line', accentColor);
+
+    card.innerHTML = `
+      <div class="line-top">
+        <span class="line-num ${typeClass}" style="${line.bonus ? 'background:rgba(249,115,22,0.15);color:#f97316' : ''}">${line.num}</span>
+        <div class="status-dot ${taken ? 'taken' : 'available'}"></div>
+      </div>
+      <div class="line-name">${line.nom}</div>
+      <div class="line-meta">
+        <span class="line-ville">${line.ville}</span>
+        <span class="line-remun" style="${line.bonus ? 'color:#f97316' : line.unisens ? 'color:#a78bfa' : ''}">${line.remun.toLocaleString()} XOF</span>
+      </div>
+      ${line.bonus ? '<div style="margin-top:8px;font-size:10px;color:#f97316;font-family:Space Mono,monospace">⭐ Ligne longue — bonus inclus</div>' : ''}
+      ${line.unisens ? '<div style="margin-top:8px;font-size:10px;color:#a78bfa;font-family:Space Mono,monospace">↗ 1 sens uniquement — départ terminus obligatoire</div>' : ''}
+      ${taken ? `<div class="line-agent">🔒 Réservé par ${agent.agent_nom.split(' ')[0]}</div>` : ''}
+    `;
+
+    if (!taken) {
+      card.onclick = () => openModal(line);
+    }
+
+    grid.appendChild(card);
+  });
+}
+
+// ══════════════════════════════════════
+// FILTER
+// ══════════════════════════════════════
+function filterLines(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderLines();
+}
+
+// ══════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════
+function openModal(line) {
+  selectedLineId = line.id;
+  document.getElementById('modal-title').textContent = `Réserver ${line.num}`;
+  document.getElementById('modal-sub').textContent = `${line.nom} — ${line.ville} — ${line.remun.toLocaleString()} XOF`;
+  const note = document.getElementById('modal-unisens-note');
+  note.innerHTML = line.unisens
+    ? '↗ <strong>Ligne spéciale étudiante :</strong> 1 seul sens à collecter (aller uniquement, départ du terminus).'
+    : '↔ Collecte aller <strong>et</strong> retour requise, depuis chaque terminus.';
+  note.style.color = line.unisens ? '#a78bfa' : '#64748b';
+  document.getElementById('inp-nom').value = '';
+  document.getElementById('inp-moov').value = '';
+  document.getElementById('inp-ville-agent').value = '';
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  selectedLineId = null;
+}
+
+async function confirmReservation() {
+  const nom      = document.getElementById('inp-nom').value.trim();
+  const phone    = document.getElementById('inp-moov').value.replace(/\s/g,'');
+  const villeAgent = document.getElementById('inp-ville-agent').value.trim();
+
+  if (!nom || !phone || !villeAgent) { showToast('Remplis tous les champs', 'error'); return; }
+  if (phone.length < 8) { showToast('Numéro invalide', 'error'); return; }
+
+  // Vérif max 2 lignes (recharge depuis Supabase pour éviter race condition)
+  const btn = document.querySelector('.btn-confirm');
+  btn.disabled = true;
+  btn.textContent = 'Vérification…';
+
+  try {
+    await loadReservations();
+
+    if (getAgentLineCount(phone) >= 2) {
+      showToast('Maximum 2 lignes par agent', 'error');
+      btn.disabled = false; btn.textContent = '✓ Confirmer';
+      return;
+    }
+
+    if (reservations[selectedLineId]) {
+      showToast('Cette ligne vient d\'être prise !', 'error');
+      closeModal(); renderLines();
+      btn.disabled = false; btn.textContent = '✓ Confirmer';
+      return;
+    }
+
+    const line = LINES.find(l => l.id === selectedLineId);
+    btn.textContent = 'Enregistrement…';
+
+    await saveReservation(line, nom, phone, villeAgent);
+    await loadReservations();
+
+    closeModal();
+    renderLines();
+    showToast(`✓ Ligne ${line.num} réservée ! On te contacte bientôt.`, 'success');
+  } catch(e) {
+    console.error(e);
+    showToast('Erreur réseau — réessaie', 'error');
+  }
+  btn.disabled = false; btn.textContent = '✓ Confirmer';
+}
+
+// ══════════════════════════════════════
+// ADMIN
+// ══════════════════════════════════════
+function openAdmin() {
+  document.getElementById('admin-panel').classList.add('open');
+  document.getElementById('admin-login-view').style.display = 'block';
+  document.getElementById('admin-dashboard').style.display = 'none';
+  document.getElementById('admin-pwd').value = '';
+}
+
+function closeAdminPanel() {
+  document.getElementById('admin-panel').classList.remove('open');
+}
+
+async function checkAdmin() {
+  const pwd = document.getElementById('admin-pwd').value;
+  if (pwd === ADMIN_PASSWORD) {
+    document.getElementById('admin-login-view').style.display = 'none';
+    document.getElementById('admin-dashboard').style.display = 'block';
+    document.getElementById('admin-tbody').innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px;font-family:Space Mono,monospace;font-size:12px">Chargement…</td></tr>';
+    await loadReservations();
+    renderAdmin();
+  } else {
+    showToast('Mot de passe incorrect', 'error');
+  }
+}
+
+function renderAdmin() {
+  const data = Object.values(reservations);
+  const tbody = document.getElementById('admin-tbody');
+  const empty = document.getElementById('admin-empty');
+  const stats = document.getElementById('admin-stats');
+
+  const totalBudget = data.reduce((s, r) => s + r.remun, 0);
+  stats.innerHTML = `
+    <div class="stat-card"><div class="stat-val">${data.length}</div><div class="stat-label">Lignes réservées</div></div>
+    <div class="stat-card"><div class="stat-val">${LINES.length - data.length}</div><div class="stat-label">Lignes disponibles</div></div>
+    <div class="stat-card"><div class="stat-val">${[...new Set(data.map(r=>r.agent_phone))].length}</div><div class="stat-label">Agents inscrits</div></div>
+    <div class="stat-card"><div class="stat-val">${totalBudget.toLocaleString()}</div><div class="stat-label">Budget engagé (XOF)</div></div>
+  `;
+
+  if (data.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = data.map(r => `
+    <tr>
+      <td class="td-line">${r.line_num} — <span style="font-weight:400;font-size:12px">${r.line_nom.substring(0,40)}…</span></td>
+      <td class="td-ville">${r.line_ville}</td>
+      <td><span class="type-badge type-${r.line_type}">${r.line_type}</span></td>
+      <td class="td-agent">${r.agent_nom}</td>
+      <td class="td-moov">${r.agent_phone}</td>
+      <td class="td-ville">${r.agent_ville}</td>
+      <td style="font-family:'Space Mono',monospace;font-size:12px;color:#f59e0b">${r.remun.toLocaleString()} XOF</td>
+      <td class="td-ville">${new Date(r.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</td>
+    </tr>
+  `).join('');
+}
+
+function exportCSV() {
+  const data = Object.values(reservations);
+  if (data.length === 0) { showToast('Aucune donnée à exporter', 'error'); return; }
+  const headers = ['ID Ligne','Num','Nom Ligne','Ville Ligne','Type','Agent','Téléphone','Ville Agent','Rémunération XOF','Date inscription'];
+  const rows = data.map(r => [
+    r.line_id, r.line_num, `"${r.line_nom}"`, r.line_ville, r.line_type,
+    r.agent_nom, r.agent_phone, r.agent_ville, r.remun,
+    new Date(r.created_at).toLocaleDateString('fr-FR')
+  ]);
+  const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'viktrak_agents.csv'; a.click();
+  showToast('Export téléchargé', 'success');
+}
+
+// ══════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+(async () => {
+  await loadReservations();
+  renderLines();
+})();
+</script>
+</body>
+</html>
