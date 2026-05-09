@@ -854,7 +854,7 @@ const LINES = [
 ];
 
 const ADMIN_PASSWORD = "viktrak2025";
-const COLLECTE_LINK  = "https://oyabyoure.github.io/viktrak-terrain2/"; // lien Viktrak Terrain
+const COLLECTE_LINK  = "https://oyabyoure.github.io/viktrak-terrain/";
 
 // ══════════════════════════════════════
 // SUPABASE CONFIG
@@ -1097,10 +1097,11 @@ function renderAdmin() {
   const stats = document.getElementById('admin-stats');
 
   const totalBudget = data.reduce((s, r) => s + r.remun, 0);
+  const uniqueAgents = [...new Set(data.map(r => r.agent_phone))].length;
   stats.innerHTML = `
     <div class="stat-card"><div class="stat-val">${data.length}</div><div class="stat-label">Lignes réservées</div></div>
     <div class="stat-card"><div class="stat-val">${LINES.length - data.length}</div><div class="stat-label">Lignes disponibles</div></div>
-    <div class="stat-card"><div class="stat-val">${[...new Set(data.map(r=>r.agent_phone))].length}</div><div class="stat-label">Agents inscrits</div></div>
+    <div class="stat-card"><div class="stat-val">${uniqueAgents}</div><div class="stat-label">Agents inscrits</div></div>
     <div class="stat-card"><div class="stat-val">${totalBudget.toLocaleString()}</div><div class="stat-label">Budget engagé (XOF)</div></div>
   `;
 
@@ -1111,25 +1112,72 @@ function renderAdmin() {
   }
   empty.style.display = 'none';
 
-  tbody.innerHTML = data.map(r => {
-    const phone = r.agent_phone.replace(/\D/g,'');
+  // Grouper les lignes par agent (par numéro de téléphone)
+  const byAgent = {};
+  data.forEach(r => {
+    const key = r.agent_phone;
+    if (!byAgent[key]) byAgent[key] = [];
+    byAgent[key].push(r);
+  });
+
+  // Générer les lignes du tableau — une ligne par réservation
+  // mais le bouton WhatsApp n'apparaît que sur la première ligne de chaque agent
+  // et récapitule toutes ses lignes dans le message
+  const rows = [];
+  Object.values(byAgent).forEach(agentRows => {
+    const first = agentRows[0];
+    const prenom = first.agent_nom.split(' ')[0];
+    const phone  = '226' + first.agent_phone.replace(/\D/g,'');
+    const totalRemun = agentRows.reduce((s, r) => s + r.remun, 0);
+    const nbLignes = agentRows.length;
+
+    // Récapitulatif des lignes dans le message
+    const lignesDetail = agentRows.map((r, i) =>
+      `  ${i+1}. Ligne *${r.line_num}* — ${r.line_ville}`
+    ).join('\n');
+
     const msg = encodeURIComponent(
-      `Bonjour ${r.agent_nom.split(' ')[0]} 👋\n\nTa réservation pour la ligne *${r.line_num}* (${r.line_ville}) a bien été enregistrée ✅\n\nVoici le lien de l'application de collecte terrain :\n👉 ${COLLECTE_LINK}\n\nDémarre depuis le terminus de ta ligne. Bonne collecte ! 🚌`
+`Bonjour ${prenom} 👋
+
+Ta candidature comme agent de collecte terrain VikTrak a bien été enregistrée ✅
+
+📋 *Tes ${nbLignes} ligne${nbLignes > 1 ? 's' : ''} assignée${nbLignes > 1 ? 's' : ''} :*
+${lignesDetail}
+
+💰 Rémunération totale : *${totalRemun.toLocaleString()} XOF* (versés après validation via Orange Money / Moov)
+
+📱 *Application de collecte terrain :*
+👉 ${COLLECTE_LINK}
+
+📌 *Instructions :*
+1️⃣ Ouvre le lien sur ton téléphone
+2️⃣ Sélectionne ta ligne dans l'application
+3️⃣ Démarre obligatoirement depuis un terminus (début ou fin de ligne)
+4️⃣ Enregistre chaque arrêt GPS jusqu'au terminus opposé
+5️⃣ Fais une photo de chaque arrêt si possible
+
+En cas de problème, réponds à ce message. Bonne collecte ! 🚌`
     );
+
     const waLink = `https://wa.me/${phone}?text=${msg}`;
-    return `
-    <tr>
-      <td class="td-line">${r.line_num} — <span style="font-weight:400;font-size:12px">${r.line_nom.substring(0,38)}…</span></td>
-      <td class="td-ville">${r.line_ville}</td>
-      <td><span class="type-badge type-${r.line_type}">${r.line_type}</span></td>
-      <td class="td-agent">${r.agent_nom}</td>
-      <td class="td-moov">${r.agent_phone}</td>
-      <td class="td-ville">${r.agent_ville}</td>
-      <td style="font-family:'Space Mono',monospace;font-size:12px;color:#f59e0b">${r.remun.toLocaleString()} XOF</td>
-      <td class="td-ville">${new Date(r.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</td>
-      <td><a href="${waLink}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:#25D366;color:#fff;border:none;border-radius:7px;padding:5px 10px;font-size:11px;font-family:Space Mono,monospace;text-decoration:none;white-space:nowrap;cursor:pointer">📲 WhatsApp</a></td>
-    </tr>
-  `}).join('');
+
+    agentRows.forEach((r, i) => {
+      rows.push(`
+      <tr style="${i > 0 ? 'border-top:none' : ''}">
+        <td class="td-line">${r.line_num} — <span style="font-weight:400;font-size:12px">${r.line_nom.substring(0,35)}…</span></td>
+        <td class="td-ville">${r.line_ville}</td>
+        <td><span class="type-badge type-${r.line_type}">${r.line_type}</span></td>
+        <td class="td-agent">${r.agent_nom}</td>
+        <td class="td-moov">+226 ${r.agent_phone}</td>
+        <td class="td-ville">${r.agent_ville}</td>
+        <td style="font-family:'Space Mono',monospace;font-size:12px;color:#f59e0b">${r.remun.toLocaleString()} XOF</td>
+        <td class="td-ville">${new Date(r.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'})}</td>
+        <td>${i === 0 ? `<a href="${waLink}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:#25D366;color:#fff;border-radius:7px;padding:5px 10px;font-size:11px;font-family:Space Mono,monospace;text-decoration:none;white-space:nowrap">📲 ${nbLignes > 1 ? nbLignes + ' lignes' : 'Contacter'}</a>` : '<span style="color:var(--border);font-size:10px;font-family:Space Mono,monospace">↑ même agent</span>'}</td>
+      </tr>`);
+    });
+  });
+
+  tbody.innerHTML = rows.join('');
 }
 
 function exportCSV() {
