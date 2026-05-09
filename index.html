@@ -1139,12 +1139,12 @@ function renderAdmin() {
     const msg = encodeURIComponent(
 `Bonjour ${prenom} 👋
 
-Ta candidature comme agent de collecte terrain VikTrak a bien été enregistrée ✅
+Tu as été sélectionné(e) comme agent de collecte terrain VikTrak ✅
 
 📋 *Tes ${nbLignes} ligne${nbLignes > 1 ? 's' : ''} assignée${nbLignes > 1 ? 's' : ''} :*
 ${lignesDetail}
 
-💰 Rémunération totale : *${totalRemun.toLocaleString()} XOF* (versés après validation via Orange Money / Moov)
+💰 Rémunération totale : *${totalRemun.toLocaleString()} XOF* — remboursement ticket bus inclus (versés après validation via Orange Money / Moov)
 
 📱 *Application de collecte terrain :*
 👉 ${COLLECTE_LINK}
@@ -1154,7 +1154,7 @@ ${lignesDetail}
 2️⃣ Sélectionne ta ligne dans l'application
 3️⃣ Démarre obligatoirement depuis un terminus (début ou fin de ligne)
 4️⃣ Enregistre chaque arrêt GPS jusqu'au terminus opposé
-5️⃣ Fais une photo de chaque arrêt si possible
+5️⃣ À la fin, télécharge le CSV et envoie-le moi par WhatsApp
 
 En cas de problème, réponds à ce message. Bonne collecte ! 🚌`
     );
