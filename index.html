@@ -632,9 +632,10 @@
     <p>Prends le bus, enregistre les arrêts GPS avec ton téléphone via <strong>VikTrak Terrain</strong>, et sois payé immédiatement après validation via Orange Money ou Moov.</p>
     <div class="rules">
       <div class="rule-pill"><div class="dot"></div> 1 000 XOF / sens</div>
-      <div class="rule-pill"><div class="dot"></div> Ticket remboursé</div>
+      <div class="rule-pill"><div class="dot"></div> Ticket remboursé inclus</div>
+      <div class="rule-pill"><div class="dot"></div> 2 500 XOF / ligne (A/R)</div>
       <div class="rule-pill"><div class="dot"></div> L2B : bonus 500 XOF</div>
-      <div class="rule-pill"><div class="dot"></div> Max 2 lignes / agent</div>
+      <div class="rule-pill"><div class="dot"></div> Max 3 lignes / agent</div>
       <div class="rule-pill"><div class="dot"></div> Premier arrivé, premier servi</div>
     </div>
   </div>
@@ -727,6 +728,7 @@
             <th>Ville agent</th>
             <th>Rémunération</th>
             <th>Date</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody id="admin-tbody"></tbody>
@@ -749,7 +751,7 @@ const LINES = [
   // Ouaga L2B        : 1000×2 + 500×2 tickets + 500 bonus = 3 000 XOF
   // Ouaga ordinaire  : 1000×2 + 200×2 tickets             = 2 500 XOF (arrondi)
   // Autres villes ordinaire : 1000×2 + 150×2              = 2 500 XOF (arrondi)
-  // Spéciales étudiantes    : 1 seul sens = 1000 + ticket = 1 500 XOF max
+  // Spéciales étudiantes : 2 500 XOF (aller+retour selon agent, tri à la restitution)
   // Intercommunales         : 1000×2 + ticket réel A/R    = variable
   // Nouvelles villes (Fada, Koupéla, Gaoua, Manga) : même grille
   // ══════════════════════════════════════════════════════════════════
@@ -777,13 +779,13 @@ const LINES = [
   {id:"OUA-IC-Koubri",   ville:"Ouagadougou", num:"IC-Koubri",   type:"intercommunale",nom:"Intercommunale — Ouagadougou ⇄ Koubri",                               remun:2800},
   {id:"OUA-IC-Ziniare",  ville:"Ouagadougou", num:"IC-Ziniaré",  type:"intercommunale",nom:"Intercommunale — Ouagadougou ⇄ Ziniaré",                              remun:3400},
   {id:"OUA-IC-Pabre",    ville:"Ouagadougou", num:"IC-Pabré",    type:"intercommunale",nom:"Intercommunale — Ouagadougou ⇄ Pabré",                                remun:3000},
-  // ── OUAGADOUGOU — spéciales étudiantes (1 seul sens = 1 500 XOF) ──
-  {id:"OUA-UO1-Kossodo", ville:"Ouagadougou", num:"UO1-Kossodo", type:"étudiant",      nom:"Spéciale UO1 — Cité universitaire de Kossodo ⇄ SIAO",                 remun:1500, unisens:true},
-  {id:"OUA-UO1-PatteOie",ville:"Ouagadougou", num:"UO1-PatteOie",type:"étudiant",      nom:"Spéciale UO1 — Patte d'Oie ⇄ UO1 via SIAO",                          remun:1500, unisens:true},
-  {id:"OUA-UO1-Larlé",   ville:"Ouagadougou", num:"UO1-Larlé",   type:"étudiant",      nom:"Spéciale UO1 — Larlé ⇄ UO1",                                         remun:1500, unisens:true},
-  {id:"OUA-UTS-Axe1",    ville:"Ouagadougou", num:"UTS-Axe1",    type:"étudiant",      nom:"Spéciale UTS Axe 1",                                                  remun:1500, unisens:true},
-  {id:"OUA-UTS-Axe2",    ville:"Ouagadougou", num:"UTS-Axe2",    type:"étudiant",      nom:"Spéciale UTS Axe 2",                                                  remun:1500, unisens:true},
-  {id:"OUA-UTS-Axe3",    ville:"Ouagadougou", num:"UTS-Axe3",    type:"étudiant",      nom:"Spéciale UTS Axe 3",                                                  remun:1500, unisens:true},
+  // ── OUAGADOUGOU — spéciales étudiantes (2 500 XOF) ──
+  {id:"OUA-UO1-Kossodo", ville:"Ouagadougou", num:"UO1-Kossodo", type:"étudiant",      nom:"Spéciale UO1 — Cité universitaire de Kossodo ⇄ SIAO",                 remun:2500, unisens:true},
+  {id:"OUA-UO1-PatteOie",ville:"Ouagadougou", num:"UO1-PatteOie",type:"étudiant",      nom:"Spéciale UO1 — Patte d'Oie ⇄ UO1 via SIAO",                          remun:2500, unisens:true},
+  {id:"OUA-UO1-Larlé",   ville:"Ouagadougou", num:"UO1-Larlé",   type:"étudiant",      nom:"Spéciale UO1 — Larlé ⇄ UO1",                                         remun:2500, unisens:true},
+  {id:"OUA-UTS-Axe1",    ville:"Ouagadougou", num:"UTS-Axe1",    type:"étudiant",      nom:"Spéciale UTS Axe 1",                                                  remun:2500, unisens:true},
+  {id:"OUA-UTS-Axe2",    ville:"Ouagadougou", num:"UTS-Axe2",    type:"étudiant",      nom:"Spéciale UTS Axe 2",                                                  remun:2500, unisens:true},
+  {id:"OUA-UTS-Axe3",    ville:"Ouagadougou", num:"UTS-Axe3",    type:"étudiant",      nom:"Spéciale UTS Axe 3",                                                  remun:2500, unisens:true},
   // ── BOBO-DIOULASSO — ordinaires ──────────────────────────────
   {id:"BOB-L1",          ville:"Bobo-Dioulasso", num:"L1",        type:"ordinaire",     nom:"Ligne 1 — CROUB ⇄ Place Tiéfo Amoro",                                remun:2500},
   {id:"BOB-L1B",         ville:"Bobo-Dioulasso", num:"L1B",       type:"ordinaire",     nom:"Ligne 1B — Cité verte de Belleville ⇄ Place Tiéfo Amoro",             remun:2500},
@@ -800,10 +802,10 @@ const LINES = [
   {id:"BOB-L13",         ville:"Bobo-Dioulasso", num:"L13",       type:"ordinaire",     nom:"Ligne 13 — UCAO ⇄ Terminal INSSA",                                   remun:2500},
   // ── BOBO-DIOULASSO — intercommunale ──────────────────────────
   {id:"BOB-IC-Bama",     ville:"Bobo-Dioulasso", num:"IC-Bama",   type:"intercommunale",nom:"Intercommunale — Place Tiéfo Amoro ⇄ Mairie de Bama",                  remun:3000},
-  // ── BOBO-DIOULASSO — spéciales étudiantes (1 seul sens = 1 500 XOF) ──
-  {id:"BOB-LSE-Total",   ville:"Bobo-Dioulasso", num:"LSE-NaziBoni-Total",  type:"étudiant",nom:"Spéc. Station Total rte Ouaga → Univ. Nazi Boni",               remun:1500, unisens:true},
-  {id:"BOB-LSE-Medersa", ville:"Bobo-Dioulasso", num:"LSE-Medersa",         type:"étudiant",nom:"Spéc. Medersa Salam → Univ. Nazi Boni",                         remun:1500, unisens:true},
-  {id:"BOB-LSE-Sarfalao",ville:"Bobo-Dioulasso", num:"LSE-Sarfalao",        type:"étudiant",nom:"Spéc. Station Shell Sarfalao → Univ. Nazi Boni",                 remun:1500, unisens:true},
+  // ── BOBO-DIOULASSO — spéciales étudiantes (2 500 XOF) ──
+  {id:"BOB-LSE-Total",   ville:"Bobo-Dioulasso", num:"LSE-NaziBoni-Total",  type:"étudiant",nom:"Spéc. Station Total rte Ouaga → Univ. Nazi Boni",               remun:2500, unisens:true},
+  {id:"BOB-LSE-Medersa", ville:"Bobo-Dioulasso", num:"LSE-Medersa",         type:"étudiant",nom:"Spéc. Medersa Salam → Univ. Nazi Boni",                         remun:2500, unisens:true},
+  {id:"BOB-LSE-Sarfalao",ville:"Bobo-Dioulasso", num:"LSE-Sarfalao",        type:"étudiant",nom:"Spéc. Station Shell Sarfalao → Univ. Nazi Boni",                 remun:2500, unisens:true},
   // ── KOUDOUGOU — ordinaires ────────────────────────────────────
   {id:"KOU-L1",          ville:"Koudougou", num:"L1",    type:"ordinaire",     nom:"Ligne 1 — Cité des Forces Vives ⇄ Université Norbert Zongo",                  remun:2500},
   {id:"KOU-L1B",         ville:"Koudougou", num:"L1B",   type:"ordinaire",     nom:"Ligne 1 bis — Cité des Forces Vives ⇄ Terminus central",                     remun:2500},
@@ -818,11 +820,11 @@ const LINES = [
   {id:"KOU-IC-Tenado",   ville:"Koudougou", num:"IC-Ténado", type:"intercommunale",nom:"Intercommunale — Koudougou ⇄ Ténado",                                    remun:3000},
   // ── OUAHIGOUYA ────────────────────────────────────────────────
   {id:"OUA2-LO1",        ville:"Ouahigouya", num:"LO1",  type:"ordinaire", nom:"Ligne LO1 — Wend Pouiré ⇄ Collège privé Vénégré",                               remun:2500},
-  {id:"OUA2-LSE1",       ville:"Ouahigouya", num:"LSE1", type:"étudiant",  nom:"Ligne LSE1 (Étudiante)",                                                         remun:1500, unisens:true},
-  {id:"OUA2-LSE2",       ville:"Ouahigouya", num:"LSE2", type:"étudiant",  nom:"Ligne LSE2 (Étudiante)",                                                         remun:1500, unisens:true},
+  {id:"OUA2-LSE1",       ville:"Ouahigouya", num:"LSE1", type:"étudiant",  nom:"Ligne LSE1 (Étudiante)",                                                         remun:2500, unisens:true},
+  {id:"OUA2-LSE2",       ville:"Ouahigouya", num:"LSE2", type:"étudiant",  nom:"Ligne LSE2 (Étudiante)",                                                         remun:2500, unisens:true},
   // ── DÉDOUGOU ──────────────────────────────────────────────────
-  {id:"DED-LSE1",        ville:"Dédougou", num:"LSE1", type:"étudiant", nom:"Ligne Spéciale LSE n°1 — Université Dédougou ⇄ Rondpoint Nazi Boni",               remun:1500, unisens:true},
-  {id:"DED-LSE2",        ville:"Dédougou", num:"LSE2", type:"étudiant", nom:"Ligne Spéciale Étudiant LSE2",                                                      remun:1500, unisens:true},
+  {id:"DED-LSE1",        ville:"Dédougou", num:"LSE1", type:"étudiant", nom:"Ligne Spéciale LSE n°1 — Université Dédougou ⇄ Rondpoint Nazi Boni",               remun:2500, unisens:true},
+  {id:"DED-LSE2",        ville:"Dédougou", num:"LSE2", type:"étudiant", nom:"Ligne Spéciale Étudiant LSE2",                                                      remun:2500, unisens:true},
   // ── FADA N'GOURMA 🆕 ──────────────────────────────────────────
   {id:"FAD-L1",          ville:"Fada N'Gourma", num:"L1", type:"ordinaire",     nom:"Ligne 1 — Péage route de Ouagadougou ⇄ Camp militaire 🆕",                 remun:2500, new:true},
   {id:"FAD-L2",          ville:"Fada N'Gourma", num:"L2", type:"ordinaire",     nom:"Ligne 2 — Terminus Université Yembila Abdoulaye TOGUYENI ⇄ Terminus quartier Kalimama 🆕", remun:2500, new:true},
@@ -852,6 +854,7 @@ const LINES = [
 ];
 
 const ADMIN_PASSWORD = "viktrak2025";
+const COLLECTE_LINK  = "https://oyabyoure.github.io/viktrak-terrain2/"; // lien Viktrak Terrain
 
 // ══════════════════════════════════════
 // SUPABASE CONFIG
@@ -971,7 +974,6 @@ function renderLines() {
         <span class="line-remun" style="${line.bonus ? 'color:#f97316' : line.unisens ? 'color:#a78bfa' : ''}">${line.remun.toLocaleString()} XOF</span>
       </div>
       ${line.bonus ? '<div style="margin-top:8px;font-size:10px;color:#f97316;font-family:Space Mono,monospace">⭐ Ligne longue — bonus inclus</div>' : ''}
-      ${line.unisens ? '<div style="margin-top:8px;font-size:10px;color:#a78bfa;font-family:Space Mono,monospace">↗ 1 sens uniquement — départ terminus obligatoire</div>' : ''}
       ${taken ? `<div class="line-agent">🔒 Réservé par ${agent.agent_nom.split(' ')[0]}</div>` : ''}
     `;
 
@@ -1024,7 +1026,7 @@ async function confirmReservation() {
   if (!nom || !phone || !villeAgent) { showToast('Remplis tous les champs', 'error'); return; }
   if (phone.length < 8) { showToast('Numéro invalide', 'error'); return; }
 
-  // Vérif max 2 lignes (recharge depuis Supabase pour éviter race condition)
+  // Vérif max 3 lignes (recharge depuis Supabase pour éviter race condition)
   const btn = document.querySelector('.btn-confirm');
   btn.disabled = true;
   btn.textContent = 'Vérification…';
@@ -1032,8 +1034,8 @@ async function confirmReservation() {
   try {
     await loadReservations();
 
-    if (getAgentLineCount(phone) >= 2) {
-      showToast('Maximum 2 lignes par agent', 'error');
+    if (getAgentLineCount(phone) >= 3) {
+      showToast('Maximum 3 lignes par agent', 'error');
       btn.disabled = false; btn.textContent = '✓ Confirmer';
       return;
     }
@@ -1109,9 +1111,15 @@ function renderAdmin() {
   }
   empty.style.display = 'none';
 
-  tbody.innerHTML = data.map(r => `
+  tbody.innerHTML = data.map(r => {
+    const phone = r.agent_phone.replace(/\D/g,'');
+    const msg = encodeURIComponent(
+      `Bonjour ${r.agent_nom.split(' ')[0]} 👋\n\nTa réservation pour la ligne *${r.line_num}* (${r.line_ville}) a bien été enregistrée ✅\n\nVoici le lien de l'application de collecte terrain :\n👉 ${COLLECTE_LINK}\n\nDémarre depuis le terminus de ta ligne. Bonne collecte ! 🚌`
+    );
+    const waLink = `https://wa.me/${phone}?text=${msg}`;
+    return `
     <tr>
-      <td class="td-line">${r.line_num} — <span style="font-weight:400;font-size:12px">${r.line_nom.substring(0,40)}…</span></td>
+      <td class="td-line">${r.line_num} — <span style="font-weight:400;font-size:12px">${r.line_nom.substring(0,38)}…</span></td>
       <td class="td-ville">${r.line_ville}</td>
       <td><span class="type-badge type-${r.line_type}">${r.line_type}</span></td>
       <td class="td-agent">${r.agent_nom}</td>
@@ -1119,8 +1127,9 @@ function renderAdmin() {
       <td class="td-ville">${r.agent_ville}</td>
       <td style="font-family:'Space Mono',monospace;font-size:12px;color:#f59e0b">${r.remun.toLocaleString()} XOF</td>
       <td class="td-ville">${new Date(r.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</td>
+      <td><a href="${waLink}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:#25D366;color:#fff;border:none;border-radius:7px;padding:5px 10px;font-size:11px;font-family:Space Mono,monospace;text-decoration:none;white-space:nowrap;cursor:pointer">📲 WhatsApp</a></td>
     </tr>
-  `).join('');
+  `}).join('');
 }
 
 function exportCSV() {
