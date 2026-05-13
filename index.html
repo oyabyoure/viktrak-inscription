@@ -919,7 +919,9 @@ async function toggleValidate(lineId, ok) {
 
 async function toggleLineDisable(lineId, disable) {
   try {
+    console.log('[toggleLineDisable] lineId:', lineId, 'disable:', disable);
     if (disable) {
+      console.log('[toggleLineDisable] POST admin_line_status...');
       await sbFetch('admin_line_status', {
         method: 'POST',
         prefer: 'resolution=merge-duplicates,return=minimal',
@@ -999,6 +1001,7 @@ const SB_KEY    = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIs
 const TABLE     = "agent_reservations";
 
 async function sbFetch(path, options = {}) {
+  console.log('[sbFetch]', options.method || 'GET', path);
   const res = await fetch(`${SB_URL}/rest/v1/${path}`, {
     ...options,
     headers: {
