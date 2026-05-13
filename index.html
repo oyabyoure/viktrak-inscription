@@ -919,9 +919,7 @@ async function toggleValidate(lineId, ok) {
 
 async function toggleLineDisable(lineId, disable) {
   try {
-    console.log('[toggleLineDisable] lineId:', lineId, 'disable:', disable);
     if (disable) {
-      console.log('[toggleLineDisable] POST admin_line_status...');
       await sbFetch('admin_line_status', {
         method: 'POST',
         prefer: 'resolution=merge-duplicates,return=minimal',
@@ -1001,7 +999,6 @@ const SB_KEY    = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIs
 const TABLE     = "agent_reservations";
 
 async function sbFetch(path, options = {}) {
-  console.log('[sbFetch]', options.method || 'GET', path);
   const res = await fetch(`${SB_URL}/rest/v1/${path}`, {
     ...options,
     headers: {
@@ -1016,9 +1013,11 @@ async function sbFetch(path, options = {}) {
     const err = await res.text();
     throw new Error(`Supabase error ${res.status}: ${err}`);
   }
-  // 204 no content
+  // 204 no content ou return=minimal (body vide)
   if (res.status === 204) return [];
-  return res.json();
+  const text = await res.text();
+  if (!text || text.trim() === '') return [];
+  try { return JSON.parse(text); } catch(e) { return []; }
 }
 
 // ══════════════════════════════════════
@@ -1069,16 +1068,16 @@ function getAgentLineCount(agentPhone) {
 }
 
 function renderLines() {
-  console.log('[renderLines] LINES:', LINES.length, 'filtered, reservations:', Object.keys(reservations).length);
   const grid = document.getElementById('lines-grid');
   const title = document.getElementById('section-title');
   const badge = document.getElementById('count-badge');
 
-  let filtered = LINES;
+  // Toujours exclure les lignes désactivées
+  let filtered = LINES.filter(l => !disabledLines.includes(l.id));
   if (currentFilter === 'disponible') {
-    filtered = LINES.filter(l => !reservations[l.id] && !disabledLines.includes(l.id));
+    filtered = filtered.filter(l => !reservations[l.id]);
   } else if (currentFilter !== 'all') {
-    filtered = LINES.filter(l => l.ville === currentFilter);
+    filtered = filtered.filter(l => l.ville === currentFilter);
   }
 
   const available = filtered.filter(l => !reservations[l.id]).length;
