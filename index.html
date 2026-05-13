@@ -614,6 +614,32 @@
     font-family: 'Space Mono', monospace;
     font-size: 13px;
   }
+
+  .btn-liberate { background:none; border:1px solid #f59e0b; color:#f59e0b; border-radius:6px; padding:4px 8px; font-size:11px; cursor:pointer; font-family:'Space Mono',monospace; white-space:nowrap; transition:all .2s; }
+  .btn-liberate:hover { background:#f59e0b; color:#000; }
+  .btn-disable { background:none; border:1px solid var(--danger); color:var(--danger); border-radius:6px; padding:4px 8px; font-size:11px; cursor:pointer; font-family:'Space Mono',monospace; white-space:nowrap; transition:all .2s; }
+  .btn-disable:hover { background:var(--danger); color:#fff; }
+  .btn-enable { background:none; border:1px solid #00c271; color:#00c271; border-radius:6px; padding:4px 8px; font-size:11px; cursor:pointer; font-family:'Space Mono',monospace; white-space:nowrap; transition:all .2s; }
+  .btn-enable:hover { background:#00c271; color:#fff; }
+  .btn-resend { background:none; border:1px solid #25D366; color:#25D366; border-radius:6px; padding:4px 8px; font-size:11px; cursor:pointer; font-family:'Space Mono',monospace; white-space:nowrap; transition:all .2s; }
+  .btn-resend:hover { background:#25D366; color:#fff; }
+  .badge-sent { display:inline-flex; align-items:center; gap:3px; background:rgba(37,211,102,.15); color:#25D366; border:1px solid rgba(37,211,102,.3); border-radius:20px; padding:2px 7px; font-size:10px; font-family:'Space Mono',monospace; }
+  .badge-notsent { display:inline-flex; align-items:center; gap:3px; background:rgba(245,158,11,.1); color:#f59e0b; border:1px solid rgba(245,158,11,.3); border-radius:20px; padding:2px 7px; font-size:10px; font-family:'Space Mono',monospace; }
+  .badge-disabled { display:inline-flex; align-items:center; gap:3px; background:rgba(239,68,68,.1); color:#ef4444; border:1px solid rgba(239,68,68,.3); border-radius:20px; padding:2px 7px; font-size:10px; font-family:'Space Mono',monospace; }
+  .disabled-line-row { opacity:.5; }
+  .admin-actions-cell { display:flex; gap:4px; flex-wrap:wrap; align-items:center; }
+
+
+  .btn-validate { background:none; border:1px solid #00c271; color:#00c271; border-radius:6px; padding:4px 8px; font-size:11px; cursor:pointer; font-family:'Space Mono',monospace; white-space:nowrap; transition:all .2s; }
+  .btn-validate:hover { background:#00c271; color:#fff; }
+  .btn-invalidate { background:none; border:1px solid #6b7280; color:#6b7280; border-radius:6px; padding:4px 8px; font-size:11px; cursor:pointer; font-family:'Space Mono',monospace; white-space:nowrap; transition:all .2s; }
+  .btn-invalidate:hover { background:#6b7280; color:#fff; }
+  .badge-ok { display:inline-flex; align-items:center; gap:3px; background:rgba(0,194,113,.15); color:#00c271; border:1px solid rgba(0,194,113,.4); border-radius:20px; padding:2px 8px; font-size:10px; font-family:'Space Mono',monospace; font-weight:700; }
+  .badge-pending { display:inline-flex; align-items:center; gap:3px; background:rgba(107,114,128,.1); color:#6b7280; border:1px solid rgba(107,114,128,.3); border-radius:20px; padding:2px 8px; font-size:10px; font-family:'Space Mono',monospace; }
+  .row-validated td { background:rgba(0,194,113,.04) !important; }
+  .progress-bar-wrap { background:rgba(255,255,255,.06); border-radius:20px; height:8px; flex:1; min-width:80px; overflow:hidden; }
+  .progress-bar-fill { height:100%; background:linear-gradient(90deg,#00c271,#4ade80); border-radius:20px; transition:width .4s ease; }
+
 </style>
 </head>
 <body>
@@ -728,12 +754,14 @@
             <th>Ville agent</th>
             <th>Rémunération</th>
             <th>Date</th>
-            <th>Action</th>
+            <th>Statut CSV</th>
+        <th>Action</th>
           </tr>
         </thead>
         <tbody id="admin-tbody"></tbody>
       </table>
       <div id="admin-empty" class="no-results" style="display:none">Aucune inscription pour le moment.</div>
+    <div id="disabled-lines-section" style="padding:0 4px"></div>
     </div>
   </div>
 </div>
@@ -853,6 +881,91 @@ const LINES = [
   {id:"MAN-IC-Gombousgou",ville:"Manga",num:"IC-Gombousgou",type:"intercommunale",nom:"Intercommunale — Manga ⇄ Gogo ⇄ Gombousgou 🆕",                         remun:2500, new:true},
 ];
 
+
+// Lignes désactivées par l'admin (pas visibles à l'inscription)
+let disabledLines = JSON.parse(localStorage.getItem('vt_disabled_lines') || '[]');
+
+// Suivi des messages envoyés : { agent_phone: { sent: bool, ts: string } }
+let messageSentMap = JSON.parse(localStorage.getItem('vt_msg_sent') || '{}');
+
+function saveDisabledLines() {
+  localStorage.setItem('vt_disabled_lines', JSON.stringify(disabledLines));
+}
+function saveMsgSent() {
+  localStorage.setItem('vt_msg_sent', JSON.stringify(messageSentMap));
+}
+
+
+// Statut de validation des lignes : { line_id: { ok: bool, ts: string } }
+let validatedLines = JSON.parse(localStorage.getItem('vt_validated') || '{}');
+
+function saveValidated() {
+  localStorage.setItem('vt_validated', JSON.stringify(validatedLines));
+}
+
+function toggleValidate(lineId, ok) {
+  if (ok) {
+    validatedLines[lineId] = { ok: true, ts: new Date().toISOString() };
+  } else {
+    delete validatedLines[lineId];
+  }
+  saveValidated();
+  renderAdmin();
+  showToast(ok ? '✅ Ligne marquée OK' : '↩ Validation annulée', ok ? 'success' : 'info');
+}
+
+function toggleLineDisable(lineId, disable) {
+  if (disable) {
+    if (!disabledLines.includes(lineId)) disabledLines.push(lineId);
+  } else {
+    disabledLines = disabledLines.filter(l => l !== lineId);
+  }
+  saveDisabledLines();
+  // Mettre à jour le select de l'inscription
+  rebuildLineSelect();
+  renderAdmin();
+  showToast(disable ? '🚫 Ligne désactivée' : '✅ Ligne réactivée', disable ? 'error' : 'success');
+}
+
+function liberateReservation(lineId, agentPhone) {
+  if (!confirm('Réattribuer cette ligne ? L\'agent actuel perdra sa réservation.')) return;
+  // Supprimer la réservation dans Supabase
+  fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?line_id=eq.${encodeURIComponent(lineId)}&agent_phone=eq.${encodeURIComponent(agentPhone)}`, {
+    method: 'DELETE',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+  }).then(r => {
+    if (r.ok) {
+      delete reservations[lineId];
+      renderAdmin();
+      renderLines();
+      showToast('✅ Ligne libérée — disponible à nouveau', 'success');
+    } else {
+      showToast('Erreur lors de la libération', 'error');
+    }
+  }).catch(() => showToast('Erreur réseau', 'error'));
+}
+
+function markMsgSent(agentPhone) {
+  messageSentMap[agentPhone] = { sent: true, ts: new Date().toISOString() };
+  saveMsgSent();
+  renderAdmin();
+}
+
+function rebuildLineSelect() {
+  const sel = document.getElementById('ligne');
+  if (!sel) return;
+  // Réinitialiser les options
+  Array.from(sel.options).forEach(opt => {
+    if (!opt.value) return;
+    const lid = opt.value;
+    const isDisabled = disabledLines.includes(lid);
+    const isTaken = !!reservations[lid];
+    opt.disabled = isDisabled || isTaken;
+    opt.style.display = (isDisabled) ? 'none' : '';
+    opt.style.color = isTaken ? 'var(--text-muted)' : '';
+  });
+}
+
 const ADMIN_PASSWORD = "viktrak2025";
 const COLLECTE_LINK  = "https://oyabyoure.github.io/viktrak-terrain/";
 
@@ -933,7 +1046,7 @@ function renderLines() {
 
   let filtered = LINES;
   if (currentFilter === 'disponible') {
-    filtered = LINES.filter(l => !reservations[l.id]);
+    filtered = LINES.filter(l => !reservations[l.id] && !disabledLines.includes(l.id));
   } else if (currentFilter !== 'all') {
     filtered = LINES.filter(l => l.ville === currentFilter);
   }
@@ -1101,6 +1214,17 @@ function renderAdmin() {
   stats.innerHTML = `
     <div class="stat-card"><div class="stat-val">${data.length}</div><div class="stat-label">Lignes réservées</div></div>
     <div class="stat-card"><div class="stat-val">${LINES.length - data.length}</div><div class="stat-label">Lignes disponibles</div></div>
+    <div class="stat-card" style="border-color:rgba(0,194,113,.3)">
+      <div class="stat-val" style="color:#00c271">${Object.values(validatedLines).filter(v=>v.ok).length}</div>
+      <div class="stat-label">Lignes ✓ OK</div>
+    </div>
+    <div class="stat-card">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <div class="stat-val" style="font-size:18px">${data.length > 0 ? Math.round(Object.values(validatedLines).filter(v=>v.ok).length / data.length * 100) : 0}%</div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${data.length > 0 ? Math.round(Object.values(validatedLines).filter(v=>v.ok).length / data.length * 100) : 0}%"></div></div>
+      </div>
+      <div class="stat-label">Progression validation</div>
+    </div>
     <div class="stat-card"><div class="stat-val">${uniqueAgents}</div><div class="stat-label">Agents inscrits</div></div>
     <div class="stat-card"><div class="stat-val">${totalBudget.toLocaleString()}</div><div class="stat-label">Budget engagé (XOF)</div></div>
   `;
@@ -1152,8 +1276,10 @@ ${lignesDetail}
 📌 *Instructions :*
 1️⃣ Ouvre le lien sur ton téléphone
 2️⃣ Sélectionne ta ligne dans l'application
-3️⃣ Démarre obligatoirement depuis un terminus (début ou fin de ligne)
-4️⃣ Enregistre chaque arrêt GPS jusqu'au terminus opposé
+3️⃣ *Point de départ :*
+   • ✅ Recommandé : démarre depuis un terminus et fais l'aller complet
+   • ⚠️ Si tu pars en milieu de ligne : va d'abord au terminus le plus proche, puis fais toute la ligne jusqu'à l'autre terminus (boucle complète obligatoire)
+4️⃣ Enregistre le GPS à chaque arrêt physiquement sur place
 5️⃣ À la fin, télécharge le CSV et envoie-le moi par WhatsApp
 
 En cas de problème, réponds à ce message. Bonne collecte ! 🚌`
@@ -1163,7 +1289,7 @@ En cas de problème, réponds à ce message. Bonne collecte ! 🚌`
 
     agentRows.forEach((r, i) => {
       rows.push(`
-      <tr style="${i > 0 ? 'border-top:none' : ''}">
+      <tr class="${validatedLines[r.line_id]?.ok ? 'row-validated' : ''}" style="${i > 0 ? 'border-top:none' : ''}">
         <td class="td-line">${r.line_num} — <span style="font-weight:400;font-size:12px">${r.line_nom.substring(0,35)}…</span></td>
         <td class="td-ville">${r.line_ville}</td>
         <td><span class="type-badge type-${r.line_type}">${r.line_type}</span></td>
@@ -1172,12 +1298,77 @@ En cas de problème, réponds à ce message. Bonne collecte ! 🚌`
         <td class="td-ville">${r.agent_ville}</td>
         <td style="font-family:'Space Mono',monospace;font-size:12px;color:#f59e0b">${r.remun.toLocaleString()} XOF</td>
         <td class="td-ville">${new Date(r.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'})}</td>
-        <td>${i === 0 ? `<a href="${waLink}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:#25D366;color:#fff;border-radius:7px;padding:5px 10px;font-size:11px;font-family:Space Mono,monospace;text-decoration:none;white-space:nowrap">📲 ${nbLignes > 1 ? nbLignes + ' lignes' : 'Contacter'}</a>` : '<span style="color:var(--border);font-size:10px;font-family:Space Mono,monospace">↑ même agent</span>'}</td>
+        <td>
+          ${validatedLines[r.line_id]?.ok
+            ? `<div style="display:flex;align-items:center;gap:6px">
+                <span class="badge-ok">✓ OK</span>
+                <button class="btn-invalidate" onclick="toggleValidate('${r.line_id}', false)" title="Annuler validation">✕</button>
+               </div>`
+            : `<button class="btn-validate" onclick="toggleValidate('${r.line_id}', true)">✓ Marquer OK</button>`
+          }
+        </td>
+        <td>
+          <div class="admin-actions-cell">
+            ${i === 0 ? `
+              <a href="${waLink}" target="_blank"
+                onclick="markMsgSent('${first.agent_phone}')"
+                style="display:inline-flex;align-items:center;gap:5px;background:#25D366;color:#fff;border-radius:7px;padding:5px 10px;font-size:11px;font-family:Space Mono,monospace;text-decoration:none;white-space:nowrap">
+                📲 ${nbLignes > 1 ? nbLignes + ' lignes' : 'Envoyer'}
+              </a>
+              ${messageSentMap[first.agent_phone]?.sent
+                ? `<span class="badge-sent">✓ Envoyé</span>
+                   <a href="${waLink}" target="_blank" onclick="markMsgSent('${first.agent_phone}')" class="btn-resend">↩ Renvoyer</a>`
+                : `<span class="badge-notsent">⏳ Non envoyé</span>`
+              }
+            ` : '<span style="color:var(--border);font-size:10px;font-family:Space Mono,monospace">↑ même agent</span>'}
+            <button class="btn-liberate" onclick="liberateReservation('${r.line_id}','${r.agent_phone}')">↩ Libérer</button>
+          </div>
+        </td>
       </tr>`);
     });
   });
 
   tbody.innerHTML = rows.join('');
+  renderDisabledSection();
+}
+
+
+// ── Section lignes désactivables dans l'admin ──────────────────────
+function renderDisabledSection() {
+  const container = document.getElementById('disabled-lines-section');
+  if (!container) return;
+  
+  // Toutes les lignes pas encore réservées
+  const takenIds = Object.keys(reservations);
+  const freeLines = LINES.filter(l => !takenIds.includes(l.id));
+  const disabledFree = freeLines.filter(l => disabledLines.includes(l.id));
+  const activeFree   = freeLines.filter(l => !disabledLines.includes(l.id));
+  
+  let html = '<div style="margin-top:20px">';
+  html += '<div style="font-family:Space Mono,monospace;font-size:12px;color:var(--text-muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.08em">';
+  html += `🚫 Lignes désactivées (${disabledFree.length}) — invisibles à l'inscription</div>`;
+  
+  if (disabledFree.length === 0) {
+    html += '<div style="color:var(--text-muted);font-size:12px;padding:10px 0">Aucune ligne désactivée</div>';
+  } else {
+    disabledFree.forEach(l => {
+      html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;margin-bottom:6px">
+        <span style="font-size:13px"><span class="badge-disabled">OFF</span> <strong>${l.num}</strong> — <span style="opacity:.7">${l.nom.substring(0,45)}</span></span>
+        <button class="btn-enable" onclick="toggleLineDisable('${l.id}', false)">✓ Réactiver</button>
+      </div>`;
+    });
+  }
+  
+  html += '<div style="font-family:Space Mono,monospace;font-size:12px;color:var(--text-muted);margin-bottom:10px;margin-top:16px;text-transform:uppercase;letter-spacing:.08em">';
+  html += `📋 Désactiver une ligne libre (${activeFree.length} disponibles)</div>`;
+  html += '<div style="display:flex;gap:8px;flex-wrap:wrap">';
+  activeFree.slice(0, 30).forEach(l => {
+    html += `<button class="btn-disable" onclick="toggleLineDisable('${l.id}', true)" style="margin-bottom:4px">${l.num}</button>`;
+  });
+  if (activeFree.length > 30) html += `<span style="color:var(--text-muted);font-size:11px;align-self:center">+${activeFree.length-30} autres</span>`;
+  html += '</div></div>';
+  
+  container.innerHTML = html;
 }
 
 function exportCSV() {
