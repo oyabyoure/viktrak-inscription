@@ -998,7 +998,7 @@ const SB_URL    = "https://pqfdonatsfrgnmjebeuo.supabase.co";
 const SB_KEY    = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxZmRvbmF0c2ZyZ25tamViZXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMDkyMDYsImV4cCI6MjA5MjY4NTIwNn0.FCcogaruguB_JcHhYrTs7xDSghMY3FhmWeemXy96ECQ";
 const TABLE     = "agent_reservations";
 
-async async function sbFetch(path, options = {}) {
+async function sbFetch(path, options = {}) {
   const res = await fetch(`${SB_URL}/rest/v1/${path}`, {
     ...options,
     headers: {
