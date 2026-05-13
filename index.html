@@ -1066,6 +1066,7 @@ function getAgentLineCount(agentPhone) {
 }
 
 function renderLines() {
+  console.log('[renderLines] LINES:', LINES.length, 'filtered, reservations:', Object.keys(reservations).length);
   const grid = document.getElementById('lines-grid');
   const title = document.getElementById('section-title');
   const badge = document.getElementById('count-badge');
@@ -1432,8 +1433,15 @@ document.getElementById('modal').addEventListener('click', function(e) {
 });
 
 (async () => {
-  await loadReservations();
-  renderLines();
+  console.log('[OuagaMove] Démarrage...');
+  try {
+    await Promise.all([loadReservations(), loadDisabledLines()]);
+    console.log('[OuagaMove] Données chargées:', Object.keys(reservations).length, 'réservations,', disabledLines.length, 'désactivées');
+    renderLines();
+    console.log('[OuagaMove] renderLines OK');
+  } catch(e) {
+    console.error('[OuagaMove] ERREUR init:', e);
+  }
 })();
 </script>
 </body>
