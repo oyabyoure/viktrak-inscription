@@ -882,49 +882,62 @@ const LINES = [
 ];
 
 
-// Lignes désactivées par l'admin (pas visibles à l'inscription)
-let disabledLines = JSON.parse(localStorage.getItem('vt_disabled_lines') || '[]');
+// Lignes désactivées — chargées depuis Supabase (table admin_line_status)
+let disabledLines = [];
 
-// Suivi des messages envoyés : { agent_phone: { sent: bool, ts: string } }
-let messageSentMap = JSON.parse(localStorage.getItem('vt_msg_sent') || '{}');
+// Suivi des messages envoyés — stocké dans agent_reservations.msg_sent
+let messageSentMap = {};
 
-function saveDisabledLines() {
-  localStorage.setItem('vt_disabled_lines', JSON.stringify(disabledLines));
-}
-function saveMsgSent() {
-  localStorage.setItem('vt_msg_sent', JSON.stringify(messageSentMap));
-}
-
-
-// Statut de validation des lignes : { line_id: { ok: bool, ts: string } }
-let validatedLines = JSON.parse(localStorage.getItem('vt_validated') || '{}');
-
-function saveValidated() {
-  localStorage.setItem('vt_validated', JSON.stringify(validatedLines));
+async function loadDisabledLines() {
+  try {
+    const rows = await sbFetch('admin_line_status?disabled=eq.true&select=line_id');
+    disabledLines = rows.map(r => r.line_id);
+  } catch(e) { disabledLines = []; }
 }
 
-function toggleValidate(lineId, ok) {
-  if (ok) {
-    validatedLines[lineId] = { ok: true, ts: new Date().toISOString() };
-  } else {
-    delete validatedLines[lineId];
-  }
-  saveValidated();
-  renderAdmin();
-  showToast(ok ? '✅ Ligne marquée OK' : '↩ Validation annulée', ok ? 'success' : 'info');
+
+// Statut de validation — stocké dans agent_reservations.csv_validated
+async function toggleValidate(lineId, ok) {
+  try {
+    await sbFetch(`${TABLE}?line_id=eq.${encodeURIComponent(lineId)}`, {
+      method: 'PATCH',
+      prefer: 'return=minimal',
+      body: JSON.stringify({
+        csv_validated: ok,
+        csv_validated_at: ok ? new Date().toISOString() : null
+      })
+    });
+    // Mise à jour locale
+    if (reservations[lineId]) {
+      reservations[lineId].csv_validated = ok;
+      reservations[lineId].csv_validated_at = ok ? new Date().toISOString() : null;
+    }
+    renderAdmin();
+    showToast(ok ? '✅ Ligne marquée OK' : '↩ Validation annulée', ok ? 'success' : 'info');
+  } catch(e) { showToast('Erreur réseau', 'error'); }
 }
 
-function toggleLineDisable(lineId, disable) {
-  if (disable) {
-    if (!disabledLines.includes(lineId)) disabledLines.push(lineId);
-  } else {
-    disabledLines = disabledLines.filter(l => l !== lineId);
-  }
-  saveDisabledLines();
-  // Mettre à jour le select de l'inscription
-  rebuildLineSelect();
-  renderAdmin();
-  showToast(disable ? '🚫 Ligne désactivée' : '✅ Ligne réactivée', disable ? 'error' : 'success');
+async function toggleLineDisable(lineId, disable) {
+  try {
+    if (disable) {
+      await sbFetch('admin_line_status', {
+        method: 'POST',
+        prefer: 'resolution=merge-duplicates,return=minimal',
+        body: JSON.stringify({ line_id: lineId, disabled: true, disabled_at: new Date().toISOString() })
+      });
+      if (!disabledLines.includes(lineId)) disabledLines.push(lineId);
+    } else {
+      await sbFetch(`admin_line_status?line_id=eq.${encodeURIComponent(lineId)}`, {
+        method: 'PATCH',
+        prefer: 'return=minimal',
+        body: JSON.stringify({ disabled: false })
+      });
+      disabledLines = disabledLines.filter(l => l !== lineId);
+    }
+    rebuildLineSelect();
+    renderAdmin();
+    showToast(disable ? '🚫 Ligne désactivée' : '✅ Ligne réactivée', disable ? 'error' : 'success');
+  } catch(e) { showToast('Erreur réseau', 'error'); }
 }
 
 function liberateReservation(lineId, agentPhone) {
@@ -945,10 +958,19 @@ function liberateReservation(lineId, agentPhone) {
   }).catch(() => showToast('Erreur réseau', 'error'));
 }
 
-function markMsgSent(agentPhone) {
-  messageSentMap[agentPhone] = { sent: true, ts: new Date().toISOString() };
-  saveMsgSent();
-  renderAdmin();
+async function markMsgSent(agentPhone) {
+  try {
+    await sbFetch(`${TABLE}?agent_phone=eq.${encodeURIComponent(agentPhone)}`, {
+      method: 'PATCH',
+      prefer: 'return=minimal',
+      body: JSON.stringify({ msg_sent: true, msg_sent_at: new Date().toISOString() })
+    });
+    // Mettre à jour en local aussi
+    Object.values(reservations)
+      .filter(r => r.agent_phone === agentPhone)
+      .forEach(r => { r.msg_sent = true; r.msg_sent_at = new Date().toISOString(); });
+    renderAdmin();
+  } catch(e) { showToast('Erreur réseau', 'error'); }
 }
 
 function rebuildLineSelect() {
@@ -1008,6 +1030,10 @@ async function loadReservations() {
     const rows = await sbFetch(`${TABLE}?select=*`);
     reservations = {};
     rows.forEach(r => { reservations[r.line_id] = r; });
+    // Aussi charger les statuts de messagerie depuis les données
+    Object.values(reservations).forEach(r => {
+      if (r.msg_sent) messageSentMap[r.agent_phone] = { sent: true };
+    });
   } catch(e) {
     console.error('loadReservations:', e);
     reservations = {};
@@ -1145,7 +1171,7 @@ async function confirmReservation() {
   btn.textContent = 'Vérification…';
 
   try {
-    await loadReservations();
+    await Promise.all([loadReservations(), loadDisabledLines()]);
 
     if (getAgentLineCount(phone) >= 3) {
       showToast('Maximum 3 lignes par agent', 'error');
@@ -1215,13 +1241,13 @@ function renderAdmin() {
     <div class="stat-card"><div class="stat-val">${data.length}</div><div class="stat-label">Lignes réservées</div></div>
     <div class="stat-card"><div class="stat-val">${LINES.length - data.length}</div><div class="stat-label">Lignes disponibles</div></div>
     <div class="stat-card" style="border-color:rgba(0,194,113,.3)">
-      <div class="stat-val" style="color:#00c271">${Object.values(validatedLines).filter(v=>v.ok).length}</div>
+      <div class="stat-val" style="color:#00c271">${Object.values(reservations).filter(r=>r.csv_validated).length}</div>
       <div class="stat-label">Lignes ✓ OK</div>
     </div>
     <div class="stat-card">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-        <div class="stat-val" style="font-size:18px">${data.length > 0 ? Math.round(Object.values(validatedLines).filter(v=>v.ok).length / data.length * 100) : 0}%</div>
-        <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${data.length > 0 ? Math.round(Object.values(validatedLines).filter(v=>v.ok).length / data.length * 100) : 0}%"></div></div>
+        <div class="stat-val" style="font-size:18px">${data.length > 0 ? Math.round(Object.values(reservations).filter(r=>r.csv_validated).length / data.length * 100) : 0}%</div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${data.length > 0 ? Math.round(Object.values(reservations).filter(r=>r.csv_validated).length / data.length * 100) : 0}%"></div></div>
       </div>
       <div class="stat-label">Progression validation</div>
     </div>
@@ -1289,7 +1315,7 @@ En cas de problème, réponds à ce message. Bonne collecte ! 🚌`
 
     agentRows.forEach((r, i) => {
       rows.push(`
-      <tr class="${validatedLines[r.line_id]?.ok ? 'row-validated' : ''}" style="${i > 0 ? 'border-top:none' : ''}">
+      <tr class="${r.csv_validated ? 'row-validated' : ''}" style="${i > 0 ? 'border-top:none' : ''}">
         <td class="td-line">${r.line_num} — <span style="font-weight:400;font-size:12px">${r.line_nom.substring(0,35)}…</span></td>
         <td class="td-ville">${r.line_ville}</td>
         <td><span class="type-badge type-${r.line_type}">${r.line_type}</span></td>
@@ -1299,7 +1325,7 @@ En cas de problème, réponds à ce message. Bonne collecte ! 🚌`
         <td style="font-family:'Space Mono',monospace;font-size:12px;color:#f59e0b">${r.remun.toLocaleString()} XOF</td>
         <td class="td-ville">${new Date(r.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'})}</td>
         <td>
-          ${validatedLines[r.line_id]?.ok
+          ${r.csv_validated
             ? `<div style="display:flex;align-items:center;gap:6px">
                 <span class="badge-ok">✓ OK</span>
                 <button class="btn-invalidate" onclick="toggleValidate('${r.line_id}', false)" title="Annuler validation">✕</button>
@@ -1315,7 +1341,7 @@ En cas de problème, réponds à ce message. Bonne collecte ! 🚌`
                 style="display:inline-flex;align-items:center;gap:5px;background:#25D366;color:#fff;border-radius:7px;padding:5px 10px;font-size:11px;font-family:Space Mono,monospace;text-decoration:none;white-space:nowrap">
                 📲 ${nbLignes > 1 ? nbLignes + ' lignes' : 'Envoyer'}
               </a>
-              ${messageSentMap[first.agent_phone]?.sent
+              ${first.msg_sent
                 ? `<span class="badge-sent">✓ Envoyé</span>
                    <a href="${waLink}" target="_blank" onclick="markMsgSent('${first.agent_phone}')" class="btn-resend">↩ Renvoyer</a>`
                 : `<span class="badge-notsent">⏳ Non envoyé</span>`
